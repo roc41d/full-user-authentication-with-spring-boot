@@ -18,7 +18,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AuthenticationService {
 
-    private static final String CONFIRMATION_URL = "";
+    private static final String CONFIRMATION_URL = "http://localhost:8080/api/v1/auth/confirm?token=%s";
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -64,7 +64,7 @@ public class AuthenticationService {
                     user.getEmail(),
                     request.getFirstname(),
                     null,
-                    CONFIRMATION_URL
+                    String.format(CONFIRMATION_URL, generatedToken)
             );
         } catch (MessagingException e) {
             e.printStackTrace();
