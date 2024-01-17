@@ -1,7 +1,9 @@
 package com.sentinelql.authentication.auth;
 
 import com.sentinelql.authentication.config.JwtService;
+import com.sentinelql.authentication.email.EmailService;
 import com.sentinelql.authentication.user.*;
+import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,11 +18,14 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AuthenticationService {
 
+    private static final String CONFIRMATION_URL = "";
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final TokenRepository tokenRepository;
+    private final EmailService emailService;
 
     @Transactional
     public String register(RegistrationRequest request) {
@@ -53,6 +58,17 @@ public class AuthenticationService {
 
         tokenRepository.save(token);
 
+        // send confirmation email
+        try {
+            emailService.sendEmail(
+                    user.getEmail(),
+                    user.getUsername(),
+                    null,
+                    CONFIRMATION_URL
+            );
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        }
         // return success or failure
         return generatedToken;
     }
