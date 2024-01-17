@@ -1,14 +1,16 @@
 package com.sentinelql.authentication.auth;
 
 import com.sentinelql.authentication.config.JwtService;
-import com.sentinelql.authentication.user.User;
-import com.sentinelql.authentication.user.UserRepository;
-import com.sentinelql.authentication.user.UserRole;
+import com.sentinelql.authentication.user.*;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -18,7 +20,9 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final TokenRepository tokenRepository;
 
+    @Transactional
     public String register(RegistrationRequest request) {
         // check if user exists
         boolean userExists = userRepository.findByEmail(request.getEmail()).isPresent();
@@ -38,8 +42,19 @@ public class AuthenticationService {
         // save user
         userRepository.save(user);
 
+        // Generate token
+        String generatedToken = UUID.randomUUID().toString();
+        Token token = Token.builder()
+                .token(generatedToken)
+                .createdAt(LocalDateTime.now())
+                .expiresAt(LocalDateTime.now().plusMinutes(15))
+                .user(user)
+                .build();
+
+        tokenRepository.save(token);
+
         // return success or failure
-        return "User created successfully";
+        return generatedToken;
     }
 
     public String authenticate(AuthenticationRequest request) {
