@@ -20,4 +20,11 @@ public class AuthenticationController {
     ) {
         return ResponseEntity.ok(authenticationService.register(request));
     }
+
+    @PostMapping("/authenticate")
+    public ResponseEntity<String> authenticate (
+            @RequestBody AuthenticationRequest request
+    ) {
+        return ResponseEntity.ok(authenticationService.authenticate(request));
+    }
 }
