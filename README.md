@@ -1,0 +1,1 @@
+# Full user registration and login with email verification using Spring Boot, Spring Security, JWT, and PostgreSQL
