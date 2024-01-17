@@ -1,26 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8"/>
     <title>Email Confirmation</title>
 </head>
 <body>
-<h1>Welcome {{username}},</h1>
-<h1>Thank you for registering!</h1>
+<h1>Welcome <span th:text="${username}"></span>,</h1>
+<p>Thank you for registering with us. Please click the link below to confirm your email:</p>
 <p>
-    Please click on the link below to confirm your email address:
+    <a th:href="${confirmationUrl}" target="_blank" style="display:inline-block; padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none;">
+        Confirm Email
+    </a>
 </p>
-<a href="{{confirmationUrl}}">Confirm my email</a>
-
-<p>
-    If you did not register on our website, please ignore this email.
-</p>
-
-<p>
-    Best regards,
-    <br>
-    The A Team
-</p>
-
+<p>If you did not register, you can ignore this email.</p>
+<p>Best regards,</p>
+<p>The XYZ Team</p>
 </body>
 </html>

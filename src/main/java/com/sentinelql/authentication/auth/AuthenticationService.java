@@ -62,7 +62,7 @@ public class AuthenticationService {
         try {
             emailService.sendEmail(
                     user.getEmail(),
-                    user.getUsername(),
+                    request.getFirstname(),
                     null,
                     CONFIRMATION_URL
             );
