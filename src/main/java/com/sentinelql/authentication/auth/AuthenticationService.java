@@ -18,7 +18,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AuthenticationService {
 
-    private static final String CONFIRMATION_URL = "http://localhost:8080/api/v1/auth/confirm?token=%s";
+    private static final String CONFIRMATION_URL = "http://localhost:8081/api/v1/auth/confirm?token=%s";
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -83,7 +83,7 @@ public class AuthenticationService {
             );
         } catch (Exception e) {
             e.printStackTrace();
-            throw new IllegalStateException("Invalid credentials");
+            throw new IllegalStateException(e.getMessage());
         }
 
         User user = userRepository.findByEmail(request.getEmail())
@@ -92,5 +92,49 @@ public class AuthenticationService {
         String jwtToken = jwtService.generateToken(user);
 
         return jwtToken;
+    }
+
+    public String confirm(String token) {
+        // check if token exists
+        Token tokenFromDb = tokenRepository.findByToken(token)
+                .orElseThrow(() -> new IllegalStateException("Token not found"));
+
+        // check if token is expired
+        if (tokenFromDb.getExpiresAt().isBefore(LocalDateTime.now())) { // LocalDateTime.now().isAfter(tokenFromDb.getExpiresAt())
+
+            // generate new token and send to user
+            String generatedToken = UUID.randomUUID().toString();
+            Token newToken = Token.builder()
+                    .token(generatedToken)
+                    .createdAt(LocalDateTime.now())
+                    .expiresAt(LocalDateTime.now().plusMinutes(15))
+                    .user(tokenFromDb.getUser())
+                    .build();
+
+            tokenRepository.save(newToken);
+
+            try {
+                emailService.sendEmail(
+                        tokenFromDb.getUser().getEmail(),
+                        tokenFromDb.getUser().getFirstname(),
+                        null,
+                        String.format(CONFIRMATION_URL, generatedToken)
+                );
+            } catch (MessagingException e) {
+                e.printStackTrace();
+            }
+
+            return "Token expired. A new token has been sent to your email";
+        }
+
+        // confirm user
+        User user = userRepository.getById(tokenFromDb.getUser().getId());
+        user.setEnabled(true);
+        userRepository.save(user);
+
+        tokenFromDb.setValidatedAt(LocalDateTime.now());
+        tokenRepository.save(tokenFromDb);
+
+        return "Your account successfully activated";
     }
 }
